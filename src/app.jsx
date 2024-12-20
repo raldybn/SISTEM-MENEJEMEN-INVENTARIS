@@ -2,12 +2,34 @@ import { useState, useRef } from 'react'
 import './app.css'
 
 
+function validasiInputBarang({ jumlahbarang, harga, tanggalmasuk }) {
+       if (harga < 2000) {
+              return "Harga tidak boleh kurang dari 2000 rupiah"
+       }
+       const today = new Date()
+       const [year, month, date] = tanggalmasuk.split('-').map(Number);
+       console.log(year, month, date)
+       const tanggal = new Date(year, month - 1, date)
+
+       if (tanggal < today) {
+              return "Masukan tanggal dengan benar"
+       }
+       return ""
+}
+
+
 function App() {
        const db = JSON.parse(localStorage.getItem("List")) ?? [];
        const [barang, setListBarang] = useState(db);
        const [selectedItem, setSelectedItem] = useState([])
 
+
        const handleSetListBarang = (dataObject) => {
+              let error = validasiInputBarang(dataObject)
+              if (error.length > 0) {
+                     alert(error)
+                     return
+              }
               const list = JSON.parse(localStorage.getItem("List")) ?? [];
               list.push(dataObject);
               setListBarang(() => list)
@@ -30,7 +52,7 @@ function App() {
 
                      <div className="grid gap-12">
                             <InputBarang setListBarang={handleSetListBarang} handleRemoveBarang={handleRemoveBarang} />
-                            <h1>Barang yang di pesan</h1>
+                            <h1 className='font-extrabold'>Barang yang di pesan</h1>
                             <DisplayBarang barang={barang} setSelectedItem={setSelectedItem} selectedItem={selectedItem} />
 
                      </div>
@@ -57,7 +79,7 @@ function DisplayBarang({ barang, setSelectedItem, selectedItem }) {
        return (
               <table>
                      <thead>
-                            <tr>
+                            <tr className='w-14'>
                                    <th>Nama Barang</th>
                                    <th>Kategori Barang</th>
                                    <th>Jumlah Barang</th>
@@ -69,21 +91,22 @@ function DisplayBarang({ barang, setSelectedItem, selectedItem }) {
                             {
 
                                    barang.map(({ namabarang, kategoribarang, jumlahbarang, harga, tanggalmasuk }, index) => {
+                                          const [year, month, date] = tanggalmasuk.split('-').map(Number);
 
                                           return (
-                                                 <tr key={index} onClick={() => handleSelect(index)} className={selectedItem.includes(index) ? "bg-blue-400" : ""} >
+                                                 <tr key={index} onClick={() => handleSelect(index)} className={selectedItem.includes(index) ? "bg-blue-400 hover:bg-slate-500" : ""} >
                                                         <td>{namabarang}</td>
                                                         <td>{kategoribarang}</td>
                                                         <td>{jumlahbarang}</td>
                                                         <td>{harga}</td>
-                                                        <td>{tanggalmasuk}</td>
+                                                        <td>{date}-{month}-{year}</td>
                                                  </tr>
 
                                           )
                                    })
                             }
                      </tbody>
-              </table>
+              </table >
        )
 }
 
