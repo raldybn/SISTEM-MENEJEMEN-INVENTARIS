@@ -2,10 +2,10 @@ import { useState, useRef } from 'react'
 import './app.css'
 
 
-function App({ value }) {
+function App() {
        const db = JSON.parse(localStorage.getItem("List")) ?? [];
        const [barang, setListBarang] = useState(db);
-       const [selectedItem, setSelectedItem] = useState()
+       const [selectedItem, setSelectedItem] = useState([])
 
        const handleSetListBarang = (dataObject) => {
               const list = JSON.parse(localStorage.getItem("List")) ?? [];
@@ -14,17 +14,25 @@ function App({ value }) {
               localStorage.setItem("List", JSON.stringify(list));
        }
 
-       const handleRemoveBarang = () {
 
+       const handleRemoveBarang = () => {
+              let list = JSON.parse(localStorage.getItem("List")) ?? [];
+              if (selectedItem.length > 0 && list.length > 0) {
+                     list = list.filter((_, index) => !selectedItem.includes(index))
+                     // console.log(list, selectedItem)
+                     setListBarang(() => list)
+                     localStorage.setItem("List", JSON.stringify(list));
+              }
        }
        return (
               <>
                      <h1 className='lg:w-max font-bold text-blue-500 p-4 text-center'>SISTEM MANAJEMEN INVENTARIS</h1>
 
                      <div className="grid gap-12">
-                            <InputBarang setListBarang={handleSetListBarang} />
+                            <InputBarang setListBarang={handleSetListBarang} handleRemoveBarang={handleRemoveBarang} />
                             <h1>Barang yang di pesan</h1>
-                            <DisplayBarang barang={barang} />
+                            <DisplayBarang barang={barang} setSelectedItem={setSelectedItem} selectedItem={selectedItem} />
+
                      </div>
               </>
        )
@@ -36,7 +44,16 @@ const Kategoribarang = {
        Lainnya: "Lainnya",
 };
 
-function DisplayBarang({ barang }) {
+function DisplayBarang({ barang, setSelectedItem, selectedItem }) {
+       const handleSelect = (index) => {
+              if (selectedItem.includes(index)) {
+                     selectedItem = selectedItem.filter((each) => each != index)
+                     setSelectedItem(() => selectedItem)
+              } else {
+                     setSelectedItem((listIndex) => [index, ...listIndex])
+              }
+
+       }
        return (
               <table>
                      <thead>
@@ -54,7 +71,7 @@ function DisplayBarang({ barang }) {
                                    barang.map(({ namabarang, kategoribarang, jumlahbarang, harga, tanggalmasuk }, index) => {
 
                                           return (
-                                                 <tr key={index}>
+                                                 <tr key={index} onClick={() => handleSelect(index)} className={selectedItem.includes(index) ? "bg-blue-400" : ""} >
                                                         <td>{namabarang}</td>
                                                         <td>{kategoribarang}</td>
                                                         <td>{jumlahbarang}</td>
@@ -71,7 +88,7 @@ function DisplayBarang({ barang }) {
 }
 
 
-function InputBarang({ setListBarang }) {
+function InputBarang({ setListBarang, handleRemoveBarang }) {
 
        return (
               <form onSubmit={(event) => handleInputBarang(event, setListBarang)} className="flex flex-col w-full border-white gap-5">
@@ -88,7 +105,7 @@ function InputBarang({ setListBarang }) {
                      <input type="date" name="tanggalmasuk" className='h-9' required min="0" />
                      <div className='flex gap-3'>
                             <button type='submit' className='hover:bg-green-500 font-extrabold w-1/2'>SUBMIT</button>
-                            <button type="button" className='hover:bg-red-500 font-extrabold w-1/2'>DELETE</button>
+                            <button type="button" className='hover:bg-red-500 font-extrabold w-1/2' onClick={handleRemoveBarang}>DELETE</button>
                      </div>
               </form>
        )
